@@ -1,8 +1,9 @@
-div {
+div.figure-div {
   position: absolute;
   top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
+  text-align: center;
 }
 
 figure {
@@ -33,18 +34,31 @@ li {
   cursor: pointer;
 }
 
+.highlight {
+  background-color: grey;
+}
+
 .black:after,
 .white:after {
   display: block;
-  width: 100%;
-  font-size: 40px;
-  line-height: 50px;
+  /*width: 48px;
+  height: 48px;*/
+
+  /*font-size: 5em;*/
+  line-height: 70px;
 }
 
 .black:after {
-  content: "O"
+  /*content: "●";*/
+  content: url("http://res.cloudinary.com/dptviwjop/image/upload/v1461393448/circle-32_frm1oz.jpg")
 }
 
 .white:after {
-  content: "X"
+  /*content: "○";*/
+  content: url("http://res.cloudinary.com/dptviwjop/image/upload/v1461393448/circle-outline-32_veibfl.jpg")
+}
+
+.black-score,
+.white-score {
+  clear: both;
 }

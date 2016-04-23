@@ -3,9 +3,11 @@ var moveError = require('./moveError.js')
 
 var Board = function() {
   this.grid = [];
-  for (var i = 0; i < 10; i ++) {
+  this.row = 10;
+  this.col = 10;
+  for (var i = 0; i < this.row; i ++) {
     var arr = []
-    for (var j = 0; j < 10; j++) {
+    for (var j = 0; j < this.col; j++) {
       arr.push(new Piece(null))
     }
     this.grid.push(arr)
@@ -27,50 +29,33 @@ Board.prototype.convertPiece = function(coordinates, color) {
   this.grid[coordinates[0]][coordinates[1]].color = color;
   this.incrementCount(color)
 
-  this.flipPieces(coordinates, color, "down")
-  this.flipPieces(coordinates, color, "up");
-  this.flipPieces(coordinates, color, "left")
-  this.flipPieces(coordinates, color, "right")
-}
+  var movements = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
 
-
-
-Board.prototype.findMove = function(coordinates, color, dir) {
-  var count = 0;
-  var newCoords = Board.directions(coordinates, dir);
-
-  while (Board.inBounds(newCoords) && this.findPiece(newCoords).color === Board.oppositeColor(color)) {
-    count++;
-    newCoords = Board.directions(newCoords, dir)
+  for (var i = 0; i < movements.length; i++) {
+    this.flipPieces(coordinates, color, movements[i])
   }
-
-  return (count > 0 && Board.inBounds(newCoords) && this.findPiece(newCoords).color === color);
 }
+
 
 
 
 
 
 Board.prototype.isLegalMove = function(coordinates, color) {
-  return (
-    this.findMove(coordinates, color, "up") ||
-    this.findMove(coordinates, color, "down") ||
-    this.findMove(coordinates, color, "left") ||
-    this.findMove(coordinates, color, "right")
-  )
+  var movements = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
+
+  for (var i = 0; i < movements.length; i++) {
+    if (this.findMove(coordinates, color, movements[i])) {
+      return true;
+    }
+  }
+  return false;
 }
 
-Board.oppositeColor = function(color) {
-  if (color === "white") {
-    return "black";
-  } else if (color === "black") {
-    return "white";
-  }
-}
 
 Board.prototype.containsValidMove = function(color) {
-  for (var i = 0; i < 10; i++) {
-    for (var j = 0; j < 10; j++) {
+  for (var i = 0; i < this.row; i++) {
+    for (var j = 0; j < this.col; j++) {
       if (this.isLegalMove([i, j], color)) {
         return true;
       }
@@ -85,8 +70,8 @@ Board.prototype.isGameOver = function() {
 
 Board.prototype.validMoves = function(color) {
   var moves = [];
-  for (var i = 0; i < 10; i++) {
-    for (var j = 0; j < 10; j++) {
+  for (var i = 0; i < this.row; i++) {
+    for (var j = 0; j < this.col; j++) {
       if (this.isLegalMove([i, j], color)) {
         moves.push([i, j])
       }
@@ -97,36 +82,36 @@ Board.prototype.validMoves = function(color) {
 
 
 
+Board.prototype.findMove = function(coordinates, color, dir) {
+  if (this.findPiece(coordinates).color !== null) {
+    return false;
+  }
+
+  var count = 0;
+  var newCoords = Board.directions(coordinates, dir);
+
+  while (Board.inBounds(newCoords) && this.findPiece(newCoords).color === Board.oppositeColor(color)) {
+    count++;
+    newCoords = Board.directions(newCoords, dir)
+  }
+
+  return (count > 0 && Board.inBounds(newCoords) && this.findPiece(newCoords).color === color);
+}
 
 
-
+Board.oppositeColor = function(color) {
+  if (color === "white") {
+    return "black";
+  } else if (color === "black") {
+    return "white";
+  }
+}
 
 
 Board.directions = function(coordinates, dir) {
-  switch(dir) {
-    case "left":
-      return [coordinates[0], coordinates[1] - 1];
-      break;
-    case "right":
-      return [coordinates[0], coordinates[1] + 1];
-      break;
-    case "up":
-      return [coordinates[0] - 1, coordinates[1]];
-      break;
-    case "down":
-      return [coordinates[0] + 1, coordinates[1]];
-      break;
-  }
-  //
-  // if (dir === "left") {
-  //     return [coordinates[0], coordinates[1] - 1];
-  // } else if (dir === "right") {
-  //   return [coordinates[0], coordinates[1] + 1]
-  // } else if (dir === "up") {
-  //   return [coordinates[0] - 1, coordinates[1]];
-  // } else if (dir === "down") {
-  //   return [coordinates[0] + 1, coordinates[1]];
-  // }
+  var row = coordinates[0] + dir[0];
+  var col = coordinates[1] + dir[1];
+  return [row, col]
 }
 
 Board.inBounds = function(coordinates) {

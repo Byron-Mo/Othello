@@ -65,23 +65,27 @@
 	  this.board = new Board();
 	  this.player1 = new Player(this, "black");
 	  this.player2 = new Player(this, "white");
-	  this.blackScore = this.board.blackScore;
-	  this.whiteScore = this.board.whiteScore;
 	  this.currentPlayer = this.player1;
+	  this.winner = null;
 	}
 	
-	Game.prototype.play = function() {
-	  if (!this.board.isGameOver()) {
-	    if (this.board.containsValidMove(this.currentPlayer.color)) {
-	
-	    }
-	    this.switchPlayer();
-	  }
-	}
+	// Game.prototype.play = function() {
+	//   if (!this.board.isGameOver()) {
+	//     if (this.board.containsValidMove(this.currentPlayer.color)) {
+	//
+	//     }
+	//     this.switchPlayer();
+	//   }
+	// }
 	
 	Game.prototype.playMove = function(coordinates) {
 	  this.board.addPiece(coordinates[0], coordinates[1], this.currentPlayer.color)
 	  this.switchPlayer();
+	
+	  if (!this.board.containsValidMove(this.currentPlayer.color)) {
+	    this.switchPlayer();
+	    // add notification that player has switched because no room left
+	  }
 	}
 	
 	Game.prototype.currentPlayerMoves = function() {
@@ -89,7 +93,18 @@
 	}
 	
 	Game.prototype.isOver = function() {
-	  return this.board.isGameOver();
+	  if (this.board.isGameOver()) {
+	    if (this.board.blackScore > this.board.whiteScore) {
+	      this.winner = "Black"
+	    } else if (this.board.blackScore < this.board.whiteScore) {
+	      this.winner = "White";
+	    } else {
+	      this.winner = "Tie"
+	    }
+	    return true;
+	  } else {
+	    return false;
+	  }
 	}
 	
 	Game.prototype.switchPlayer = function() {
@@ -116,9 +131,11 @@
 	
 	var Board = function() {
 	  this.grid = [];
-	  for (var i = 0; i < 10; i ++) {
+	  this.row = 10;
+	  this.col = 10;
+	  for (var i = 0; i < this.row; i ++) {
 	    var arr = []
-	    for (var j = 0; j < 10; j++) {
+	    for (var j = 0; j < this.col; j++) {
 	      arr.push(new Piece(null))
 	    }
 	    this.grid.push(arr)
@@ -140,50 +157,33 @@
 	  this.grid[coordinates[0]][coordinates[1]].color = color;
 	  this.incrementCount(color)
 	
-	  this.flipPieces(coordinates, color, "down")
-	  this.flipPieces(coordinates, color, "up");
-	  this.flipPieces(coordinates, color, "left")
-	  this.flipPieces(coordinates, color, "right")
-	}
+	  var movements = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
 	
-	
-	
-	Board.prototype.findMove = function(coordinates, color, dir) {
-	  var count = 0;
-	  var newCoords = Board.directions(coordinates, dir);
-	
-	  while (Board.inBounds(newCoords) && this.findPiece(newCoords).color === Board.oppositeColor(color)) {
-	    count++;
-	    newCoords = Board.directions(newCoords, dir)
+	  for (var i = 0; i < movements.length; i++) {
+	    this.flipPieces(coordinates, color, movements[i])
 	  }
-	
-	  return (count > 0 && Board.inBounds(newCoords) && this.findPiece(newCoords).color === color);
 	}
+	
 	
 	
 	
 	
 	
 	Board.prototype.isLegalMove = function(coordinates, color) {
-	  return (
-	    this.findMove(coordinates, color, "up") ||
-	    this.findMove(coordinates, color, "down") ||
-	    this.findMove(coordinates, color, "left") ||
-	    this.findMove(coordinates, color, "right")
-	  )
+	  var movements = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
+	
+	  for (var i = 0; i < movements.length; i++) {
+	    if (this.findMove(coordinates, color, movements[i])) {
+	      return true;
+	    }
+	  }
+	  return false;
 	}
 	
-	Board.oppositeColor = function(color) {
-	  if (color === "white") {
-	    return "black";
-	  } else if (color === "black") {
-	    return "white";
-	  }
-	}
 	
 	Board.prototype.containsValidMove = function(color) {
-	  for (var i = 0; i < 10; i++) {
-	    for (var j = 0; j < 10; j++) {
+	  for (var i = 0; i < this.row; i++) {
+	    for (var j = 0; j < this.col; j++) {
 	      if (this.isLegalMove([i, j], color)) {
 	        return true;
 	      }
@@ -198,8 +198,8 @@
 	
 	Board.prototype.validMoves = function(color) {
 	  var moves = [];
-	  for (var i = 0; i < 10; i++) {
-	    for (var j = 0; j < 10; j++) {
+	  for (var i = 0; i < this.row; i++) {
+	    for (var j = 0; j < this.col; j++) {
 	      if (this.isLegalMove([i, j], color)) {
 	        moves.push([i, j])
 	      }
@@ -210,36 +210,36 @@
 	
 	
 	
+	Board.prototype.findMove = function(coordinates, color, dir) {
+	  if (this.findPiece(coordinates).color !== null) {
+	    return false;
+	  }
+	
+	  var count = 0;
+	  var newCoords = Board.directions(coordinates, dir);
+	
+	  while (Board.inBounds(newCoords) && this.findPiece(newCoords).color === Board.oppositeColor(color)) {
+	    count++;
+	    newCoords = Board.directions(newCoords, dir)
+	  }
+	
+	  return (count > 0 && Board.inBounds(newCoords) && this.findPiece(newCoords).color === color);
+	}
 	
 	
-	
+	Board.oppositeColor = function(color) {
+	  if (color === "white") {
+	    return "black";
+	  } else if (color === "black") {
+	    return "white";
+	  }
+	}
 	
 	
 	Board.directions = function(coordinates, dir) {
-	  switch(dir) {
-	    case "left":
-	      return [coordinates[0], coordinates[1] - 1];
-	      break;
-	    case "right":
-	      return [coordinates[0], coordinates[1] + 1];
-	      break;
-	    case "up":
-	      return [coordinates[0] - 1, coordinates[1]];
-	      break;
-	    case "down":
-	      return [coordinates[0] + 1, coordinates[1]];
-	      break;
-	  }
-	  //
-	  // if (dir === "left") {
-	  //     return [coordinates[0], coordinates[1] - 1];
-	  // } else if (dir === "right") {
-	  //   return [coordinates[0], coordinates[1] + 1]
-	  // } else if (dir === "up") {
-	  //   return [coordinates[0] - 1, coordinates[1]];
-	  // } else if (dir === "down") {
-	  //   return [coordinates[0] + 1, coordinates[1]];
-	  // }
+	  var row = coordinates[0] + dir[0];
+	  var col = coordinates[1] + dir[1];
+	  return [row, col]
 	}
 	
 	Board.inBounds = function(coordinates) {
@@ -363,12 +363,12 @@
 	  }
 	  this.$el.append($ul)
 	  this.highlight();
+	  this.updateScore();
 	}
 	
 	View.prototype.highlight = function() {
 	  var $li = $("li")
 	  var currentValidMoves = this.game.currentPlayerMoves();
-	  // console.log(currentValidMoves)
 	
 	  for (var i = 0; i < $li.length; i++) {
 	    for (var j = 0; j < currentValidMoves.length; j++) {
@@ -390,12 +390,33 @@
 	
 	  try {
 	    this.game.playMove(pos)
+	    this.updateScore()
 	  } catch (e) {
 	    return;
 	  }
 	
 	  this.updateBoard();
 	  this.highlight();
+	  console.log(this.game.winner)
+	  if (this.game.isOver()) {
+	    this.$el.off("click");
+	    $status = $(".status");
+	    if (this.game.winner === "Tie") {
+	      $status.text("It's a tie!")
+	    } else {
+	      $status.text(this.game.winner + " wins!")
+	    }
+	  }
+	}
+	
+	View.prototype.updateScore = function() {
+	  var $whiteScore = $("div.white-score");
+	  var $blackScore = $("div.black-score");
+	  var $status = $(".status");
+	
+	  $status.text("Current Player is: " + this.game.currentPlayer.color)
+	  $whiteScore.text("White: " + this.game.board.whiteScore)
+	  $blackScore.text("Black: " + this.game.board.blackScore)
 	}
 	
 	View.prototype.updateBoard = function() {

@@ -20,12 +20,12 @@ View.prototype.setupBoard = function() {
   }
   this.$el.append($ul)
   this.highlight();
+  this.updateScore();
 }
 
 View.prototype.highlight = function() {
   var $li = $("li")
   var currentValidMoves = this.game.currentPlayerMoves();
-  // console.log(currentValidMoves)
 
   for (var i = 0; i < $li.length; i++) {
     for (var j = 0; j < currentValidMoves.length; j++) {
@@ -47,12 +47,33 @@ View.prototype.makeMove = function($square) {
 
   try {
     this.game.playMove(pos)
+    this.updateScore()
   } catch (e) {
     return;
   }
 
   this.updateBoard();
   this.highlight();
+  console.log(this.game.winner)
+  if (this.game.isOver()) {
+    this.$el.off("click");
+    $status = $(".status");
+    if (this.game.winner === "Tie") {
+      $status.text("It's a tie!")
+    } else {
+      $status.text(this.game.winner + " wins!")
+    }
+  }
+}
+
+View.prototype.updateScore = function() {
+  var $whiteScore = $("div.white-score");
+  var $blackScore = $("div.black-score");
+  var $status = $(".status");
+
+  $status.text("Current Player is: " + this.game.currentPlayer.color)
+  $whiteScore.text("White: " + this.game.board.whiteScore)
+  $blackScore.text("Black: " + this.game.board.blackScore)
 }
 
 View.prototype.updateBoard = function() {
