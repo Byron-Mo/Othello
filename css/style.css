@@ -30,4 +30,21 @@ li {
 
 .highlight:hover {
   background-color: lightgrey;
+  cursor: pointer;
+}
+
+.black:after,
+.white:after {
+  display: block;
+  width: 100%;
+  font-size: 40px;
+  line-height: 50px;
+}
+
+.black:after {
+  content: "O"
+}
+
+.white:after {
+  content: "X"
 }

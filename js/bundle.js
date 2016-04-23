@@ -79,6 +79,11 @@
 	  }
 	}
 	
+	Game.prototype.playMove = function(coordinates) {
+	  this.board.addPiece(coordinates[0], coordinates[1], this.currentPlayer.color)
+	  this.switchPlayer();
+	}
+	
 	Game.prototype.currentPlayerMoves = function() {
 	  return this.board.validMoves(this.currentPlayer.color)
 	}
@@ -107,6 +112,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var Piece = __webpack_require__(3)
+	var moveError = __webpack_require__(6)
 	
 	var Board = function() {
 	  this.grid = [];
@@ -126,7 +132,7 @@
 	  if (this.isLegalMove([row, col], color)) {
 	    this.convertPiece([row, col], color)
 	  } else {
-	    console.log("can't do this")
+	    throw new moveError("not valid")
 	  }
 	}
 	
@@ -140,22 +146,7 @@
 	  this.flipPieces(coordinates, color, "right")
 	}
 	
-	Board.prototype.flipPieces = function(coordinates, color, dir) {
-	  var dirCoords = [];
-	  var newCoords = Board.directions(coordinates, dir);
 	
-	  while (Board.inBounds(newCoords) && this.findPiece(newCoords).color === Board.oppositeColor(color)) {
-	    dirCoords.push(newCoords);
-	    newCoords = Board.directions(newCoords, dir)
-	  }
-	
-	  if (Board.inBounds(newCoords) && this.findPiece(newCoords).color === color) {
-	    this.tradeCount(color, dirCoords.length)
-	    for (var i = 0; i < dirCoords; i++) {
-	      this.findPiece(dirCoords[i]).color = color;
-	    }
-	  }
-	}
 	
 	Board.prototype.findMove = function(coordinates, color, dir) {
 	  var count = 0;
@@ -169,26 +160,9 @@
 	  return (count > 0 && Board.inBounds(newCoords) && this.findPiece(newCoords).color === color);
 	}
 	
-	Board.directions = function(coordinates, dir) {
-	  switch(dir) {
-	    case "left":
-	      return [coordinates[0], coordinates[1] - 1];
-	      break;
-	    case "right":
-	      return [coordinates[0], coordinates[1] + 1];
-	      break;
-	    case "up":
-	      return [coordinates[0] - 1, coordinates[1]];
-	      break;
-	    case "down":
-	      return [coordinates[0] + 1, coordinates[1]];
-	      break;
-	  }
-	}
 	
-	Board.prototype.findPiece = function(coordinates) {
-	  return this.grid[coordinates[0]][coordinates[1]];
-	}
+	
+	
 	
 	Board.prototype.isLegalMove = function(coordinates, color) {
 	  return (
@@ -210,7 +184,7 @@
 	Board.prototype.containsValidMove = function(color) {
 	  for (var i = 0; i < 10; i++) {
 	    for (var j = 0; j < 10; j++) {
-	      if (this.isLegalMove(this.grid[i][j], color)) {
+	      if (this.isLegalMove([i, j], color)) {
 	        return true;
 	      }
 	    }
@@ -226,12 +200,46 @@
 	  var moves = [];
 	  for (var i = 0; i < 10; i++) {
 	    for (var j = 0; j < 10; j++) {
-	      if (this.isLegalMove(this.grid[i][j], color)) {
+	      if (this.isLegalMove([i, j], color)) {
 	        moves.push([i, j])
 	      }
 	    }
 	  }
 	  return moves;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	Board.directions = function(coordinates, dir) {
+	  switch(dir) {
+	    case "left":
+	      return [coordinates[0], coordinates[1] - 1];
+	      break;
+	    case "right":
+	      return [coordinates[0], coordinates[1] + 1];
+	      break;
+	    case "up":
+	      return [coordinates[0] - 1, coordinates[1]];
+	      break;
+	    case "down":
+	      return [coordinates[0] + 1, coordinates[1]];
+	      break;
+	  }
+	  //
+	  // if (dir === "left") {
+	  //     return [coordinates[0], coordinates[1] - 1];
+	  // } else if (dir === "right") {
+	  //   return [coordinates[0], coordinates[1] + 1]
+	  // } else if (dir === "up") {
+	  //   return [coordinates[0] - 1, coordinates[1]];
+	  // } else if (dir === "down") {
+	  //   return [coordinates[0] + 1, coordinates[1]];
+	  // }
 	}
 	
 	Board.inBounds = function(coordinates) {
@@ -269,6 +277,27 @@
 	  this.grid[5][5].color = "white";
 	  this.grid[4][5].color = "black";
 	  this.grid[5][4].color = "black";
+	}
+	
+	Board.prototype.flipPieces = function(coordinates, color, dir) {
+	  var dirCoords = [];
+	  var newCoords = Board.directions(coordinates, dir);
+	
+	  while (Board.inBounds(newCoords) && this.findPiece(newCoords).color === Board.oppositeColor(color)) {
+	    dirCoords.push(newCoords);
+	    newCoords = Board.directions(newCoords, dir)
+	  }
+	
+	  if (Board.inBounds(newCoords) && this.findPiece(newCoords).color === color) {
+	    this.tradeCount(color, dirCoords.length)
+	    for (var i = 0; i < dirCoords.length; i++) {
+	      this.findPiece(dirCoords[i]).color = color;
+	    }
+	  }
+	}
+	
+	Board.prototype.findPiece = function(coordinates) {
+	  return this.grid[coordinates[0]][coordinates[1]];
 	}
 	
 	module.exports = Board;
@@ -332,41 +361,77 @@
 	      $ul.append($li)
 	    }
 	  }
-	  this.highlight();
 	  this.$el.append($ul)
+	  this.highlight();
 	}
 	
 	View.prototype.highlight = function() {
 	  var $li = $("li")
 	  var currentValidMoves = this.game.currentPlayerMoves();
+	  // console.log(currentValidMoves)
 	
 	  for (var i = 0; i < $li.length; i++) {
 	    for (var j = 0; j < currentValidMoves.length; j++) {
-	      var liRow = $li[i].date("pos")[0];
-	      var liCol = $li[i].date("pos")[1];
+	      var liRow = $($li[i]).data("pos")[0];
+	      var liCol = $($li[i]).data("pos")[1];
 	      var validRow = currentValidMoves[j][0];
 	      var validCol = currentValidMoves[j][1];
 	
 	      if (liRow === validRow && liCol === validCol) {
-	        $li[i].addClass("highlight")
+	        $($li[i]).addClass("highlight")
 	      }
 	    }
 	  }
 	}
 	
-	View.prototype.makeMove = function() {
+	View.prototype.makeMove = function($square) {
+	  // check and make sure square is correct
+	  var pos = $square.data("pos");
 	
+	  try {
+	    this.game.playMove(pos)
+	  } catch (e) {
+	    return;
+	  }
+	
+	  this.updateBoard();
+	  this.highlight();
+	}
+	
+	View.prototype.updateBoard = function() {
+	  var $li = $("li");
+	  $li.removeClass();
+	
+	  for (var i = 0; i < $li.length; i++) {
+	    var $item = $($li[i]);
+	    var row = $item.data("pos")[0]
+	    var col = $item.data("pos")[1]
+	
+	    $item.addClass(this.game.board.grid[row][col].color)
+	  }
 	}
 	
 	View.prototype.bindEvents = function() {
+	  var that = this;
 	  this.$el.on("click", "li", function(event) {
 	    event.preventDefault();
 	    var $square = $(event.currentTarget);
-	    this.makeMove($square)
-	  }).bind(this)
+	    that.makeMove($square)
+	  })
 	}
 	
 	module.exports = View;
+
+
+/***/ },
+/* 6 */
+/***/ function(module, exports) {
+
+	function moveError(msg) {
+	  this.msg = msg;
+	}
+	
+	module.exports = moveError;
 
 
 /***/ }

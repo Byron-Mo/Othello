@@ -19,6 +19,11 @@ Game.prototype.play = function() {
   }
 }
 
+Game.prototype.playMove = function(coordinates) {
+  this.board.addPiece(coordinates[0], coordinates[1], this.currentPlayer.color)
+  this.switchPlayer();
+}
+
 Game.prototype.currentPlayerMoves = function() {
   return this.board.validMoves(this.currentPlayer.color)
 }

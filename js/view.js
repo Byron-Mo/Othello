@@ -18,38 +18,63 @@ View.prototype.setupBoard = function() {
       $ul.append($li)
     }
   }
-  this.highlight();
   this.$el.append($ul)
+  this.highlight();
 }
 
 View.prototype.highlight = function() {
   var $li = $("li")
   var currentValidMoves = this.game.currentPlayerMoves();
+  // console.log(currentValidMoves)
 
   for (var i = 0; i < $li.length; i++) {
     for (var j = 0; j < currentValidMoves.length; j++) {
-      var liRow = $li[i].date("pos")[0];
-      var liCol = $li[i].date("pos")[1];
+      var liRow = $($li[i]).data("pos")[0];
+      var liCol = $($li[i]).data("pos")[1];
       var validRow = currentValidMoves[j][0];
       var validCol = currentValidMoves[j][1];
 
       if (liRow === validRow && liCol === validCol) {
-        $li[i].addClass("highlight")
+        $($li[i]).addClass("highlight")
       }
     }
   }
 }
 
-View.prototype.makeMove = function() {
+View.prototype.makeMove = function($square) {
+  // check and make sure square is correct
+  var pos = $square.data("pos");
 
+  try {
+    this.game.playMove(pos)
+  } catch (e) {
+    return;
+  }
+
+  this.updateBoard();
+  this.highlight();
+}
+
+View.prototype.updateBoard = function() {
+  var $li = $("li");
+  $li.removeClass();
+
+  for (var i = 0; i < $li.length; i++) {
+    var $item = $($li[i]);
+    var row = $item.data("pos")[0]
+    var col = $item.data("pos")[1]
+
+    $item.addClass(this.game.board.grid[row][col].color)
+  }
 }
 
 View.prototype.bindEvents = function() {
+  var that = this;
   this.$el.on("click", "li", function(event) {
     event.preventDefault();
     var $square = $(event.currentTarget);
-    this.makeMove($square)
-  }).bind(this)
+    that.makeMove($square)
+  })
 }
 
 module.exports = View;
