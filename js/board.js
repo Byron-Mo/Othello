@@ -9,6 +9,9 @@ var Board = function() {
     }
     this.grid.push(arr)
   }
+
+  this.blackScore = 2;
+  this.whiteScore = 2;
 }
 
 Board.prototype.addPiece = function(row, col, color) {
@@ -21,6 +24,7 @@ Board.prototype.addPiece = function(row, col, color) {
 
 Board.prototype.convertPiece = function(coordinates, color) {
   this.grid[coordinates[0]][coordinates[1]].color = color;
+  this.incrementCount(color)
 
   this.flipPieces(coordinates, color, "down")
   this.flipPieces(coordinates, color, "up");
@@ -38,6 +42,7 @@ Board.prototype.flipPieces = function(coordinates, color, dir) {
   }
 
   if (Board.inBounds(newCoords) && this.findPiece(newCoords).color === color) {
+    this.tradeCount(color, dirCoords.length)
     for (var i = 0; i < dirCoords; i++) {
       this.findPiece(dirCoords[i]).color = color;
     }
@@ -94,6 +99,32 @@ Board.oppositeColor = function(color) {
   }
 }
 
+Board.prototype.containsValidMove = function(color) {
+  for (var i = 0; i < 10; i++) {
+    for (var j = 0; j < 10; j++) {
+      if (this.isLegalMove(this.grid[i][j], color)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+Board.prototype.isGameOver = function() {
+  return !this.containsValidMove("white") && !this.containsValidMove("black")
+}
+
+Board.prototype.validMoves = function(color) {
+  var moves = [];
+  for (var i = 0; i < 10; i++) {
+    for (var j = 0; j < 10; j++) {
+      if (this.isLegalMove(this.grid[i][j], color)) {
+        moves.push([i, j])
+      }
+    }
+  }
+  return moves;
+}
 
 Board.inBounds = function(coordinates) {
   if (coordinates[0] < 0 || coordinates[0] > 9) {
@@ -106,3 +137,30 @@ Board.inBounds = function(coordinates) {
 
   return true;
 }
+
+Board.prototype.incrementCount = function(color) {
+  if (color === "black") {
+    this.blackScore++;
+  } else {
+    this.whiteScore++;
+  }
+}
+
+Board.prototype.tradeCount = function(color, count) {
+  if (color === "black") {
+    this.blackScore += count;
+    this.whiteScore -= count
+  } else if (color === "white") {
+    this.whiteScore += count;
+    this.blackScore -= count;
+  }
+}
+
+Board.prototype.setupBoard = function() {
+  this.grid[4][4].color = "white";
+  this.grid[5][5].color = "white";
+  this.grid[4][5].color = "black";
+  this.grid[5][4].color = "black";
+}
+
+module.exports = Board;

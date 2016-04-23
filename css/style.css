@@ -1,0 +1,33 @@
+div {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+figure {
+
+}
+
+ul {
+  width: 500px;
+  height: 500px;
+  border: 1px solid black;
+  list-style: none;
+  -webkit-margin-before: 0em;
+  -webkit-margin-after: 0em;
+  -webkit-margin-start: 0px;
+  -webkit-margin-end: 0px;
+  -webkit-padding-start: 0px;
+}
+
+li {
+  float: left;
+  width: 48px;
+  height: 48px;
+  border: 1px solid black;
+}
+
+.highlight:hover {
+  background-color: lightgrey;
+}
