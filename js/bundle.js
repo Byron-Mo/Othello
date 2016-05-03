@@ -45,7 +45,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var Game = __webpack_require__(1)
-	var View = __webpack_require__(5)
+	var View = __webpack_require__(6)
 	
 	$(function() {
 	  var $el = $("figure");
@@ -59,7 +59,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var Board = __webpack_require__(2);
-	var Player = __webpack_require__(4);
+	var Player = __webpack_require__(5);
 	
 	var Game = function() {
 	  this.board = new Board();
@@ -127,7 +127,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var Piece = __webpack_require__(3)
-	var moveError = __webpack_require__(6)
+	var moveError = __webpack_require__(4)
 	
 	var Board = function() {
 	  this.grid = [];
@@ -326,6 +326,17 @@
 /* 4 */
 /***/ function(module, exports) {
 
+	function moveError(msg) {
+	  this.msg = msg;
+	}
+	
+	module.exports = moveError;
+
+
+/***/ },
+/* 5 */
+/***/ function(module, exports) {
+
 	var Player = function(game, color) {
 	  this.color = color;
 	}
@@ -338,7 +349,7 @@
 
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports) {
 
 	var View = function(game, $el) {
@@ -442,17 +453,6 @@
 	}
 	
 	module.exports = View;
-
-
-/***/ },
-/* 6 */
-/***/ function(module, exports) {
-
-	function moveError(msg) {
-	  this.msg = msg;
-	}
-	
-	module.exports = moveError;
 
 
 /***/ }
